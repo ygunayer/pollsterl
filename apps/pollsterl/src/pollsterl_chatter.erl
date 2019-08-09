@@ -14,6 +14,7 @@ init() ->
         _ -> init()
     end.
 
+
 loop(BotId) ->
     receive
         {event, <<"MESSAGE_CREATE">>, #{
@@ -21,18 +22,48 @@ loop(BotId) ->
             channel_id := ChannelId,
             author := #{id := AuthorId, username := Author}
         }} when AuthorId =/= BotId ->
-            case re:run(Content, "^\!poll(sterl|ster)?\s+(?<capture>.*+)", [{capture, all_names}]) of
-                {match, [{Begin, Length}]} ->
-                    Subject = string:slice(Content, Begin, Length),
-                    logger:debug("[pollsterl] Initiating poll upon request by ~s", [Author]),
-                    Reply = erlang:list_to_binary([
-                        <<"selamin aleykum ">>,
-                        Author,
-                        <<" \"">>,
-                        Subject,
-                        <<"\" diye anket istemissin ama az bekle aq daha o kadar yazilmadi">>
-                    ]),
-                    discord_rest:send_message(binary_to_list(ChannelId), #{<<"content">> => Reply});
+            case util:extract_command(binary:bin_to_list(Content)) of
+                {ok, Command} ->
+                    case Command of
+                        {start, Subject, Options} ->
+                            Reply = case Options of
+                                basic ->
+                                    erlang:list_to_binary([
+                                        Author,
+                                        <<" has started a basic poll for ">>,
+                                        Subject
+                                    ]);
+                                Other ->
+                                    erlang:list_to_binary([
+                                        Author,
+                                        <<" has started a poll for ">>,
+                                        Subject,
+                                        <<" with options ">>,
+                                        lists:join(", ", Other)
+                                    ])
+                            end,
+                            discord_rest:send_message(binary_to_list(ChannelId), #{<<"content">> => Reply});
+
+                        {stop, Polls} ->
+                            PollNames = case Polls of
+                                all -> <<"all polls">>;
+                                last -> <<"the last poll">>;
+                                Other -> list_to_binary([<<"polls ">>, lists:join(", ", Other)])
+                            end,
+                            Reply = erlang:list_to_binary([
+                                Author,
+                                <<" is stopping ">>,
+                                PollNames,
+                                <<" in this channel">>
+                            ]),
+                            discord_rest:send_message(binary_to_list(ChannelId), #{<<"content">> => Reply});
+
+                        Other ->
+                            logger:info("[pollsterl] Received command ~w", [Other]);
+                        _ -> {}
+                    end;
+                Other ->
+                    logger:info("[pollsterl] Command not recognized ~w", [Other]);
                 _ -> {}
             end
     end,

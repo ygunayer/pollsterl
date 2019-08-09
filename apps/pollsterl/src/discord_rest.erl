@@ -42,7 +42,8 @@ handle_call({send_message, ChannelId, Data}, _From, State = {ready, #{token := T
     Result =
         case gun:await(ConnPid, StreamRef) of
             {response, nofin, _Status, _Headers} ->
-                {ok, Body} = gun:await_body(ConnPid, StreamRef),
+                {ok, _Response} = gun:await_body(ConnPid, StreamRef),
+                % TODO check if response body is valid
                 {reply, {ok}, State};
             Other ->
                 {reply, {badresponse, Other}, State}
