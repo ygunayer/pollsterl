@@ -1,9 +1,11 @@
 {"1.1.0",
-[{<<"cowlib">>,{pkg,<<"cowlib">>,<<"2.6.0">>},1},
+[{<<"bbmustache">>,{pkg,<<"bbmustache">>,<<"1.8.0">>},0},
+ {<<"cowlib">>,{pkg,<<"cowlib">>,<<"2.6.0">>},1},
  {<<"gun">>,{pkg,<<"gun">>,<<"1.3.0">>},0},
  {<<"jsone">>,{pkg,<<"jsone">>,<<"1.5.0">>},0}]}.
 [
 {pkg_hash,[
+ {<<"bbmustache">>, <<"A268D256B3D5C7CF9FD14ECED58977BC71AADB7CE412E883C3A2CD0A10F3CF27">>},
  {<<"cowlib">>, <<"8AA629F81A0FC189F261DC98A42243FA842625FEEA3C7EC56C48F4CCDB55490F">>},
  {<<"gun">>, <<"18E5D269649C987AF95AEC309F68A27FFC3930531DD227A6EAA0884D6684286E">>},
  {<<"jsone">>, <<"410F5208BCAE541BF941B3F2756E5BB5A4C8694D7FFD6B34B909AE88262629C0">>}]}

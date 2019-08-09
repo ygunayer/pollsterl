@@ -1,6 +1,55 @@
 -module(pollsterl_chatter).
 -export([start_link/0, init/0, loop/1]).
 
+-define(BASIC_POLL_OPTIONS, [
+    #{<<"emoji">> => ":thumbsup:", <<"label">> => "Yes/Agree"},
+    #{<<"emoji">> => ":thumbsdown:", <<"label">> => "No/Disagree"},
+    #{<<"emoji">> => ":shrug:", <<"label">> => "Maybe/Undecided"}
+]).
+
+-define(EMOJI_DIGITS, [
+    ":one:",
+    ":two:",
+    ":three:",
+    ":four:",
+    ":five:",
+    ":six:",
+    ":seven:",
+    ":eight:",
+    ":nine:",
+    ":keycap_ten:"
+]).
+
+-define(EMOJI_LETTERS, [
+    ":regional_indicator_a:",
+    ":regional_indicator_b:",
+    ":regional_indicator_c:",
+    ":regional_indicator_d:",
+    ":regional_indicator_e:",
+    ":regional_indicator_f:",
+    ":regional_indicator_g:",
+    ":regional_indicator_i:",
+    ":regional_indicator_j:",
+    ":regional_indicator_k:",
+    ":regional_indicator_l:",
+    ":regional_indicator_m:",
+    ":regional_indicator_n:",
+    ":regional_indicator_o:",
+    ":regional_indicator_p:",
+    ":regional_indicator_q:",
+    ":regional_indicator_r:",
+    ":regional_indicator_s:",
+    ":regional_indicator_t:",
+    ":regional_indicator_u:",
+    ":regional_indicator_v:",
+    ":regional_indicator_w:",
+    ":regional_indicator_x:",
+    ":regional_indicator_y:",
+    ":regional_indicator_z:"
+]).
+
+-define(EMOJI_ALL, lists:concat(?EMOJI_DIGITS, ?EMOJI_LETTERS)).
+
 start_link() ->
     Pid = spawn_link(?MODULE, init, []),
     {ok, Token} = application:get_env(pollsterl, bot_token),
@@ -25,24 +74,30 @@ loop(BotId) ->
             case util:extract_command(binary:bin_to_list(Content)) of
                 {ok, Command} ->
                     case Command of
-                        {start, Subject, Options} ->
-                            Reply = case Options of
-                                basic ->
-                                    erlang:list_to_binary([
-                                        Author,
-                                        <<" has started a basic poll for ">>,
-                                        Subject
-                                    ]);
-                                Other ->
-                                    erlang:list_to_binary([
-                                        Author,
-                                        <<" has started a poll for ">>,
-                                        Subject,
-                                        <<" with options ">>,
-                                        lists:join(", ", Other)
-                                    ])
+                        {help, Topic} ->
+                            TemplateName = case Topic of
+                                ["!start"] -> "help_start";
+                                ["!stop"] -> "help_stop";
+                                ["!expire"] -> "help_expire";
+                                _ -> "help"
                             end,
-                            discord_rest:send_message(binary_to_list(ChannelId), #{<<"content">> => Reply});
+                            Reply = message_builder:render(TemplateName, #{}),
+                            discord_rest:channel_send_message(ChannelId, #{<<"content">> => Reply});
+
+                        {start, Subject, OptionType} ->
+                            Options = case OptionType of
+                                basic ->
+                                    ?BASIC_POLL_OPTIONS;
+                                LabelList ->
+                                    EmojiList =
+                                        case length(LabelList) of
+                                            N when N < 11 -> lists:sublist(?EMOJI_DIGITS, N);
+                                            N -> lists:sublist(?EMOJI_ALL, N)
+                                        end,
+                                    [#{<<"emoji">> => Emoji, <<"label">> => Label} || {Label, Emoji} <- lists:zip(LabelList, EmojiList)]
+                            end,
+                            Reply = message_builder:render("poll_start", #{<<"subject">> => Subject, <<"author">> => Author, <<"options">> => Options}),
+                            discord_rest:channel_send_message(ChannelId, #{<<"content">> => Reply});
 
                         {stop, Polls} ->
                             PollNames = case Polls of
@@ -56,7 +111,7 @@ loop(BotId) ->
                                 PollNames,
                                 <<" in this channel">>
                             ]),
-                            discord_rest:send_message(binary_to_list(ChannelId), #{<<"content">> => Reply});
+                            discord_rest:channel_send_message(binary_to_list(ChannelId), #{<<"content">> => Reply});
 
                         Other ->
                             logger:info("[pollsterl] Received command ~w", [Other]);

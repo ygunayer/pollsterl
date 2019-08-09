@@ -1,5 +1,5 @@
 -module(discord_rest).
--export([start_link/0, send_message/2, set_token/1]).
+-export([start_link/0, channel_send_message/2, set_token/1]).
 
 -behaviour(gen_server).
 -export([init/1, handle_cast/2, handle_call/3]).
@@ -13,8 +13,10 @@ start_link() ->
 set_token(Token) ->
     gen_server:cast(?SERVER_NAME, {set_token, Token}).
 
-send_message(ChannelId, Data) ->
-    gen_server:call(?SERVER_NAME, {send_message, ChannelId, Data}).
+% Discord - Channel API
+%% ----------------
+channel_send_message(ChannelId, Data) ->
+    gen_server:call(?SERVER_NAME, {channel_send_message, ChannelId, Data}).
 
 %% Private API
 %% ----------------
@@ -30,11 +32,11 @@ connect() ->
 init(_Args) ->
     {ok, {disconnected}}.
 
-handle_call({send_message, ChannelId, Data}, _From, State = {ready, #{token := Token}}) ->
+handle_call({channel_send_message, ChannelId, Data}, _From, State = {ready, #{token := Token}}) ->
     {ok, ConnPid} = connect(),
 
     RequestBody = jsone:encode(Data),
-    StreamRef = gun:post(ConnPid, "/api/v6/channels/" ++ ChannelId ++ "/messages", [
+    StreamRef = gun:post(ConnPid, util:join(["/api/v6/channels/", ChannelId, "/messages"]), [
         {<<"Authorization">>, "Bot " ++ Token},
         {<<"Content-Type">>, <<"application/json">>}
     ], RequestBody),

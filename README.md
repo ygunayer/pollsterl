@@ -9,45 +9,73 @@ pollsterl is written in Erlang, and is structured as an OTP release with support
 (TBC)
 
 ## Usage
-WIP - The below list isn't actually implemented, it simply represents the vision I have in mind
-```bash
-# Format:
-> !poll <command> [args...]
+The basic command syntax is:
 
-# Print the usage info
-> !poll !help
-> !poll !info
+`!poll <!command> [args...]`
 
-# Starts a poll with a certain subject
-# You can also omit !start for convenience
-> !poll !start <subject>
+See subsections for more details.
 
-# Omitting !start is a shortcut
-# Start a basic poll with 3 options: yes, no, maybe/undecided
-> !poll anyone up for some gr?
-> !poll "Has anyone really been far even as decided to use even go want to do look more like?"
+**Hint:** Other valid prefixes are `!pollster` and `!pollsterl`.
 
-# Start a poll with custom options
-> !poll "Which starter pokemon is your favorite?" Charmander Bulbasaur Squirtle
-> !poll "Which faction do you prefer?" NCR "Caesar's Legion" "Mr. House" "I go about my own way"
+### !help
+You can use `!poll !help` or `!poll !info` to print the general help text.
+`!poll !help`
+`!poll !info`
 
-# Stop/finish/cancel polls
-> !poll !stop <poll id>
-> !poll !stop <poll id 1> <poll id 2> ...
-> !poll !stop last
-> !poll !stop all
-# When <poll id> is omitted, it refers to the last poll created on the channel
-> !poll !stop
+To request help on a specific command or topic, enter one of the following:
+- `!poll !help !start`: Starting polls
+- `!poll !help !stop`: Stopping polls
+- `!poll !help !expire`: Managing expiration dates of polls
 
-# Set an expiry date for a poll
-> !poll !expire <poll id> 1 hour
-> !poll !expire <poll id> tomorrow
-> !poll !expire <poll id> "2019-08-16T13:44:51+0300"
-# When <poll id> is omitted, it refers to the last poll created on the channel
-> !poll !expire 1 hour
-```
+### !start
+You can use the `!start` command to start a poll:
+`!poll !start <subject>`
 
-Other valid prefixes are `!pollster` and `!pollsterl`.
+**Hint**: Each poll has a unique ID that can later be used to refer to it.
+
+You can also omit the `!start` command to quickly start a poll:
+`!poll anyone up for some gr?`
+`!poll "Has anyone really been far even as decided to use even go want to do look more like?"`
+
+By default, all polls start with the basic yes/no/undecided options, but you can also specify your own (up to 36):
+
+`!poll "Which starter pokemon is your favorite?" Charmander Bulbasaur Squirtle`
+`!poll "Which faction do you prefer?" NCR "Caesar's Legion" "Mr. House" "I go about my own way"`
+
+### !stop
+You can use the `!stop` command to stop an ongoing command.
+
+The default usage of the stop command is:
+`!poll !stop <poll id>`
+
+You can also specify multiple poll IDs
+`!poll !stop <poll id 1> <poll id 2> ...`
+
+The word `last` can be used to quickly refer to the latest poll that was created on the current channel
+`!poll !stop last`
+
+...or omit any ID or keyword to refer to it
+`!poll !stop`
+
+To stop all ongoing polls in the *current channel*, use the keyword `here`
+`!poll !stop here`
+
+Or, to stop all polls globally, use the keyword `all`
+`!poll !stop all`
+
+### !expire - (WORK IN PROGRESS)
+The `!expire` command can be used to set an expiration date for a poll that when reach will automatically cause the poll to be closed.
+
+You can specify the expiration date as a relative time
+`!poll !expire <poll id> 1 hour`
+`!poll !expire <poll id> tomorrow`
+
+...or a specific date
+`!poll !expire <poll id> "2019-08-16T13:44:51+0300"`
+
+You can omit the poll ID to refer to the latest poll created in the current channel
+`!poll !expire 1 hour`
+
 
 ## TODO
 - Implement core functionality
@@ -55,7 +83,8 @@ Other valid prefixes are `!pollster` and `!pollsterl`.
     - Start and end polls
 - Actual release
     - Deployment
-    - Live debugging & hot version upgrades
+- Maybe use `ct` instead of `eunit`
+- Maybe use `recon`
 - (Future) Implement a DSL-based rule engine to allow users to define custom behaviors without having to modify the code
 
 ## License

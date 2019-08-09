@@ -1,0 +1,11 @@
+The `!expire` command can be used to set an expiration date for a poll that when reach will automatically cause the poll to be closed.
+
+You can specify the expiration date as a relative time
+`!poll !expire <poll id> 1 hour`
+`!poll !expire <poll id> tomorrow`
+
+...or a specific date
+`!poll !expire <poll id> "2019-08-16T13:44:51+0300"`
+
+You can omit the poll ID to refer to the latest poll created in the current channel
+`!poll !expire 1 hour`

@@ -1,5 +1,18 @@
 -module(util).
--export([parse_args/1, parse_command/1, parse_message/1, extract_command/1]).
+-export([parse_args/1, parse_command/1, parse_message/1, extract_command/1, join/1, join/2]).
+
+join(Items) ->
+    join(Items, "").
+
+join(Items, Separator) ->
+    NormalizedItems = [
+        case is_binary(I) of
+            true -> binary_to_list(I);
+            false -> I
+        end
+        || I <- Items
+    ],
+    lists:join(Separator, NormalizedItems).
 
 parse_args(String) ->
     CleanString = string:trim(String),
@@ -48,14 +61,14 @@ parse_message(Message) ->
 
 extract_command(Message) ->
     case parse_message(Message) of
-        {command, "help", Topic} -> {ok, help, Topic};
-        {command, "info", Topic} -> {ok, help, Topic};
+        {command, "help", Topic} -> {ok, {help, Topic}};
+        {command, "info", Topic} -> {ok, {help, Topic}};
 
         {command, "start", []} -> {error, not_enough_args, start};
         {command, "start", [Subject]} -> {ok, {start, Subject, basic}};
-        {command, "start", [Subject | Options]} -> {ok, {start, Subject, Options}};
+        {command, "start", [Subject | Options]} when length(Options) < 37 -> {ok, {start, Subject, Options}};
         {no_command, [Subject]} -> {ok, {start, Subject, basic}};
-        {no_command, [Subject | Options]} -> {ok, {start, Subject, Options}};
+        {no_command, [Subject | Options]} when length(Options) < 37 -> {ok, {start, Subject, Options}};
 
         {command, "stop", []} -> {ok, {stop, last}};
         {command, "stop", ["last"]} -> {ok, {stop, last}};
