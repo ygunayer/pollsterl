@@ -1,0 +1,7 @@
+-boot start_clean
+-sname pollsterl
+
+-setcookie pollsterl_cookie
+
++K true
++A30

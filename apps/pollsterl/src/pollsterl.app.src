@@ -1,0 +1,14 @@
+{application, pollsterl,
+ [{description, "A poll bot for Discord"},
+  {vsn, "0.0.1"},
+  {registered, []},
+  {mod, {pollsterl_app, []}},
+  {applications,
+   [kernel, stdlib, gun]
+  },
+  {env,[]},
+  {modules, []},
+
+  {licenses, ["MIT"]},
+  {links, []}
+ ]}.
