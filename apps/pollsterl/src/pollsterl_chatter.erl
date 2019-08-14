@@ -96,8 +96,9 @@ loop(BotId) ->
                                         end,
                                     [#{<<"emoji">> => Emoji, <<"label">> => Label} || {Label, Emoji} <- lists:zip(LabelList, EmojiList)]
                             end,
-                            Reply = message_builder:render("poll_start", #{<<"subject">> => Subject, <<"author">> => Author, <<"options">> => Options}),
-                            discord_rest:channel_send_message(ChannelId, #{<<"content">> => Reply});
+                            {ok, Pid} = pollsterl_poll_sup:start_poll(),
+                            {ok, PollId} = pollsterl_poll:start(Pid, {ChannelId, Author, Subject, Options});
+
 
                         {stop, Polls} ->
                             PollNames = case Polls of

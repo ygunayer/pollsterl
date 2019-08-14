@@ -1,5 +1,20 @@
 -module(util).
--export([parse_args/1, parse_command/1, parse_message/1, extract_command/1, join/1, join/2]).
+-export([parse_args/1, parse_command/1, parse_message/1, extract_command/1, join/1, join/2, random_string/1, random_string/2, utc_now/0]).
+
+utc_now() ->
+    erlang:system_profile(millisecond).
+
+random_string(Length) ->
+    random_string(Length, "abcdefghijklmnopqrstuvwxyz1234567890").
+
+random_string(Length, AllowedChars) ->
+    lists:foldl(
+        fun(_, Acc) ->
+            [lists:nth(rand:uniform(length(AllowedChars)), AllowedChars)] ++ Acc
+        end,
+        [],
+        lists:seq(1, Length)
+    ).
 
 join(Items) ->
     join(Items, "").

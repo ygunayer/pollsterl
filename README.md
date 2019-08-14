@@ -104,12 +104,15 @@ You can omit the poll ID to refer to the latest poll created in the current chan
 
 
 ## TODO
+- EDoc
 - Implement core functionality
     - Use proper seq no's for Discord heartbeats
     - Start and end polls
+- Use dialyzer
+- Implement more tests
+- Maybe use `ct` instead of `eunit`
 - Actual release
     - Deployment
-- Maybe use `ct` instead of `eunit`
 - Maybe use `recon`
 - (Future) Implement a DSL-based rule engine to allow users to define custom behaviors without having to modify the code
 

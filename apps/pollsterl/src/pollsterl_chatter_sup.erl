@@ -13,4 +13,5 @@ init([]) ->
     ChildSpecs = [
         #{id => chatter, start => {pollsterl_chatter, start_link, []}, restart => transient}
     ],
+    logger:debug("[supervisor:chatter] Chatter supervisor is launching"),
     {ok, {SupFlags, ChildSpecs}}.
