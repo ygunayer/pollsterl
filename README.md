@@ -19,8 +19,12 @@ See subsections for more details.
 
 ### !help
 You can use `!poll !help` or `!poll !info` to print the general help text.
-`!poll !help`
-`!poll !info`
+```
+!poll !help
+```
+```
+!poll !info
+```
 
 To request help on a specific command or topic, enter one of the following:
 - `!poll !help !start`: Starting polls
@@ -29,39 +33,61 @@ To request help on a specific command or topic, enter one of the following:
 
 ### !start
 You can use the `!start` command to start a poll:
-`!poll !start <subject>`
+```
+!poll !start <subject>
+```
 
 **Hint**: Each poll has a unique ID that can later be used to refer to it.
 
 You can also omit the `!start` command to quickly start a poll:
-`!poll anyone up for some gr?`
-`!poll "Has anyone really been far even as decided to use even go want to do look more like?"`
+```
+!poll anyone up for some gr?
+```
+```
+!poll "Has anyone really been far even as decided to use even go want to do look more like?"
+```
 
 By default, all polls start with the basic yes/no/undecided options, but you can also specify your own (up to 36):
 
-`!poll "Which starter pokemon is your favorite?" Charmander Bulbasaur Squirtle`
-`!poll "Which faction do you prefer?" NCR "Caesar's Legion" "Mr. House" "I go about my own way"`
+```
+!poll "Which starter pokemon is your favorite?" Charmander Bulbasaur Squirtle
+```
+```
+!poll "Which faction do you prefer?" NCR "Caesar's Legion" "Mr. House" "I go about my own way"
+```
 
 ### !stop
 You can use the `!stop` command to stop an ongoing command.
 
 The default usage of the stop command is:
-`!poll !stop <poll id>`
+```
+!poll !stop <poll id>
+```
 
 You can also specify multiple poll IDs
-`!poll !stop <poll id 1> <poll id 2> ...`
+```
+!poll !stop <poll id 1> <poll id 2> ...
+```
 
 The word `last` can be used to quickly refer to the latest poll that was created on the current channel
-`!poll !stop last`
+```
+!poll !stop last
+```
 
 ...or omit any ID or keyword to refer to it
-`!poll !stop`
+```
+!poll !stop
+```
 
 To stop all ongoing polls in the *current channel*, use the keyword `here`
-`!poll !stop here`
+```
+!poll !stop here
+```
 
 Or, to stop all polls globally, use the keyword `all`
-`!poll !stop all`
+```
+!poll !stop all
+```
 
 ### !expire - (WORK IN PROGRESS)
 The `!expire` command can be used to set an expiration date for a poll that when reach will automatically cause the poll to be closed.
