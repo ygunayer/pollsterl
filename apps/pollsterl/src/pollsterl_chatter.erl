@@ -82,7 +82,7 @@ loop(BotId) ->
                                 ["!expire"] -> "help_expire";
                                 _ -> "help"
                             end,
-                            Reply = message_builder:render(TemplateName, #{}),
+                            Reply = pollsterl_templates:render(TemplateName, #{}),
                             discord_rest:channel_send_message(ChannelId, #{<<"content">> => Reply});
 
                         {start, Subject, OptionType} ->
@@ -98,7 +98,7 @@ loop(BotId) ->
                                     [#{<<"emoji">> => Emoji, <<"label">> => Label} || {Label, Emoji} <- lists:zip(LabelList, EmojiList)]
                             end,
                             {ok, Pid} = pollsterl_poll_sup:start_poll(),
-                            {ok, PollId} = pollsterl_poll:start(Pid, {ChannelId, Author, Subject, Options});
+                            {ok, PollId} = pollsterl_poll_handler:start(Pid, {ChannelId, Author, Subject, Options});
 
 
                         {stop, Polls} ->

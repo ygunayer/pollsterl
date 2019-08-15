@@ -1,4 +1,4 @@
--module(pollsterl_chatter_sup).
+-module(discord_sup).
 -export([start_link/0]).
 
 -behaviour(supervisor).
@@ -11,7 +11,7 @@ start_link() ->
 init([]) ->
     SupFlags = #{strategy => one_for_all, intensity => 0, period => 1},
     ChildSpecs = [
-        #{id => chatter, start => {pollsterl_chatter, start_link, []}, restart => transient}
+        #{id => discord_rest, start => {discord_rest, start_link, []}, restart => transient},
+        #{id => discord_gateway, start => {discord_gateway, start_link, []}, restart => transient}
     ],
-    logger:debug("[supervisor:chatter] Chatter supervisor is launching"),
     {ok, {SupFlags, ChildSpecs}}.

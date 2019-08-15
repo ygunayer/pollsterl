@@ -1,4 +1,4 @@
--module(pollsterl_poll).
+-module(pollsterl_poll_handler).
 -export([start_link/1, start/2]).
 
 -behaviour(gen_server).
@@ -19,10 +19,10 @@ handle_call({start, PollData}, _From, {initializing, State}) ->
     #{id := Id, subject := Subject, author := Author, options := Options, channel_id := ChannelId} = PollData,
     discord_gateway:subscribe(self()),
     
-    Reply = message_builder:render("poll_start", #{<<"subject">> => Subject, <<"author">> => Author, <<"options">> => Options, <<"poll_id">> => Id}),
+    Reply = pollsterl_templates:render("poll_start", #{<<"subject">> => Subject, <<"author">> => Author, <<"options">> => Options, <<"poll_id">> => Id}),
     discord_rest:channel_send_message(ChannelId, #{<<"content">> => Reply}),
 
-    logger:debug("[poll:~s] Started handler for poll #~s", [Id, Id]),
+    logger:debug("[poll:handler:~s] Started handler for poll #~s", [Id, Id]),
 
     NewState = maps:merge(State, #{poll => PollData}),
     {reply, {ok, Id}, {watching, NewState}};
@@ -32,7 +32,7 @@ handle_call(Request, _From, _State) ->
 
 handle_cast({cast_vote, Option}, State) ->
     #{poll := #{id := PollId}} = State,
-    logger:debug("[poll:~s] A vote was cast: ~s", [PollId, Option]),
+    logger:debug("[poll:handler:~s] A vote was cast: ~s", [PollId, Option]),
     {noreply, State};
 handle_cast(_Message, State) ->
     {noreply, State}.

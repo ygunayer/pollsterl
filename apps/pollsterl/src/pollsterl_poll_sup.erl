@@ -13,6 +13,6 @@ start_poll() ->
 
 init([]) ->
     SupFlags = #{strategy => simple_one_for_one, intensity => 0, period => 1},
-    ChildSpecs = [#{id => poll, start => {pollsterl_poll, start_link, [self()]}}],
+    ChildSpecs = [#{id => poll, start => {pollsterl_poll_handler, start_link, [self()]}}],
     logger:debug("[supervisor:poll] Poll supervisor is launching"),
     {ok, {SupFlags, ChildSpecs}}.

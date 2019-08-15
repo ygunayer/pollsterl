@@ -1,4 +1,4 @@
--module(message_builder).
+-module(pollsterl_templates).
 -export([start_link/0, render/2]).
 
 -behaviour(gen_server).
@@ -25,7 +25,7 @@ init(_Args) ->
         maps:new(),
         Filenames
     ),
-    logger:debug("[message-builder] ~w template(s) were read from the file system", [maps:size(Templates)]),
+    logger:debug("[templates] ~w template(s) were read from the file system", [maps:size(Templates)]),
     {ok, {ready, #{templates => Templates}}}.
 
 render(TemplateName, Data) ->
