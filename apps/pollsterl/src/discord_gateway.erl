@@ -127,6 +127,13 @@ handle_event(_EventType, {ws_message, Message}, connecting, Data) ->
             {_, OsName} = os:type(),
             Identity = #{
                 <<"token">> => list_to_binary(Token),
+                <<"presence">> => #{
+                    <<"status">> => <<"online">>,
+                    <<"game">> => #{
+                        <<"type">> => 2,
+                        <<"name">> => <<"!poll !help">>
+                    }
+                },
                 <<"properties">> => #{
                     <<"$os">> => atom_to_binary(OsName, utf8),
                     <<"$browser">> => <<"pollsterl">>,
