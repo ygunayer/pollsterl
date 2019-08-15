@@ -1,5 +1,5 @@
 -module(util).
--export([parse_args/1, parse_command/1, parse_message/1, extract_command/1, join/1, join/2, random_string/1, random_string/2, utc_now/0]).
+-export([parse_json/1, parse_args/1, parse_command/1, parse_message/1, extract_command/1, join/1, join/2, random_string/1, random_string/2, utc_now/0]).
 
 utc_now() ->
     erlang:system_profile(millisecond).
@@ -28,6 +28,9 @@ join(Items, Separator) ->
         || I <- Items
     ],
     lists:join(Separator, NormalizedItems).
+
+parse_json(Json) ->
+    jsone:try_decode(Json, [{object_format, map}, {keys, atom}]).
 
 parse_args(String) ->
     CleanString = string:trim(String),

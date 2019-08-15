@@ -1,5 +1,5 @@
 -module(pollsterl_chatter).
--export([start_link/0, init/0, loop/1]).
+-export([start_link/0, listen/0]).
 
 -define(BASIC_POLL_OPTIONS, [
     #{<<"emoji">> => ":thumbsup:", <<"label">> => "Yes/Agree"},
@@ -51,77 +51,59 @@
 -define(EMOJI_ALL, lists:concat(?EMOJI_DIGITS, ?EMOJI_LETTERS)).
 
 start_link() ->
-    Pid = spawn_link(?MODULE, init, []),
-    {ok, Token} = application:get_env(pollsterl, bot_token),
-    discord_gateway:subscribe(Pid),
-    spawn(fun() -> discord_rest:set_token(Token) end),
-    spawn(fun() -> discord_gateway:open(Token) end),
+    Pid = spawn_link(?MODULE, listen, []),
+    spawn(fun() -> timer:sleep(2000), pollsterl_command_relay:subscribe(Pid) end),
     {ok, Pid}.
 
-init() ->
+listen() ->
     receive
-        {bot_id, BotId} -> loop(BotId);
-        _ -> init()
-    end.
-
-
-loop(BotId) ->
-    receive
-        {discord_dispatch, <<"MESSAGE_CREATE">>, #{
-            content := Content,
+        {command, Command, Message =#{
             channel_id := ChannelId,
-            author := #{id := AuthorId, username := Author}
-        }} when AuthorId =/= BotId ->
-            case util:extract_command(binary:bin_to_list(Content)) of
-                {ok, Command} ->
-                    case Command of
-                        {help, Topic} ->
-                            TemplateName = case Topic of
-                                ["!start"] -> "help_start";
-                                ["!stop"] -> "help_stop";
-                                ["!expire"] -> "help_expire";
-                                _ -> "help"
-                            end,
-                            Reply = pollsterl_templates:render(TemplateName, #{}),
-                            discord_rest:channel_send_message(ChannelId, #{<<"content">> => Reply});
+            author := #{username := Author}
+        }} ->
+            case Command of
+                {help, Topic} ->
+                    TemplateName = case Topic of
+                        ["!start"] -> "help_start";
+                        ["!stop"] -> "help_stop";
+                        ["!expire"] -> "help_expire";
+                        _ -> "help"
+                    end,
+                    Reply = pollsterl_templates:render(TemplateName, #{}),
+                    discord_rest:channel_send_message(ChannelId, #{<<"content">> => Reply});
 
-                        {start, Subject, OptionType} ->
-                            Options = case OptionType of
-                                basic ->
-                                    ?BASIC_POLL_OPTIONS;
-                                LabelList ->
-                                    EmojiList =
-                                        case length(LabelList) of
-                                            N when N < 11 -> lists:sublist(?EMOJI_DIGITS, N);
-                                            N -> lists:sublist(?EMOJI_ALL, N)
-                                        end,
-                                    [#{<<"emoji">> => Emoji, <<"label">> => Label} || {Label, Emoji} <- lists:zip(LabelList, EmojiList)]
-                            end,
-                            {ok, Pid} = pollsterl_poll_sup:start_poll(),
-                            {ok, PollId} = pollsterl_poll_handler:start(Pid, {ChannelId, Author, Subject, Options});
+                {start, Subject, OptionType} ->
+                    #{id := MessageId} = Message,
+                    Options = case OptionType of
+                        basic ->
+                            ?BASIC_POLL_OPTIONS;
+                        LabelList ->
+                            EmojiList =
+                                case length(LabelList) of
+                                    N when N < 11 -> lists:sublist(?EMOJI_DIGITS, N);
+                                    N -> lists:sublist(?EMOJI_ALL, N)
+                                end,
+                            [#{<<"emoji">> => Emoji, <<"label">> => Label} || {Label, Emoji} <- lists:zip(LabelList, EmojiList)]
+                    end,
+                    {ok, Pid} = pollsterl_poll_sup:start_poll(),
+                    {ok, _} = pollsterl_poll_handler:start(Pid, #{original_message_id => MessageId, subject => Subject, author => Author, options => Options, channel_id => ChannelId});
 
+                {stop, Polls} ->
+                    PollNames = case Polls of
+                        all -> <<"all polls">>;
+                        last -> <<"the last poll">>;
+                        Other -> list_to_binary([<<"polls ">>, lists:join(", ", Other)])
+                    end,
+                    Reply = erlang:list_to_binary([
+                        Author,
+                        <<" is stopping ">>,
+                        PollNames,
+                        <<" in this channel">>
+                    ]),
+                    discord_rest:channel_send_message(binary_to_list(ChannelId), #{<<"content">> => Reply});
 
-                        {stop, Polls} ->
-                            PollNames = case Polls of
-                                all -> <<"all polls">>;
-                                last -> <<"the last poll">>;
-                                Other -> list_to_binary([<<"polls ">>, lists:join(", ", Other)])
-                            end,
-                            Reply = erlang:list_to_binary([
-                                Author,
-                                <<" is stopping ">>,
-                                PollNames,
-                                <<" in this channel">>
-                            ]),
-                            discord_rest:channel_send_message(binary_to_list(ChannelId), #{<<"content">> => Reply});
-
-                        Other ->
-                            logger:info("[pollsterl] Received command ~w", [Other]);
-                        _ -> {}
-                    end;
-                Other ->
-                    logger:info("[pollsterl] Command not recognized ~w", [Other]);
-                _ -> {}
-            end
+                _ -> noop
+            end;
+        _ -> noop
     end,
-    loop(BotId).
+    listen().

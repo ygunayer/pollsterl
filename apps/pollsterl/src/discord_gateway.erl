@@ -37,7 +37,7 @@ unsubscribe(Pid) ->
 %% Private methods
 %% ------------------------
 parse_frame({text, Json}) ->
-    jsone:try_decode(Json, [{object_format, map}, {keys, atom}]);
+    util:parse_json(Json);
 parse_frame({close, Reason, Message}) ->
     {ok, {close, Reason, Message}};
 parse_frame(Other) ->
@@ -53,6 +53,32 @@ callback_mode() ->
 
 init(_Args) ->
     {ok, disconnected, #{subs => sets:new()}}.
+
+handle_event(_EventType, {subscribe, Pid}, _State, Data = #{subs := Subs}) ->
+    NewSubs = sets:add_element(Pid, Subs),
+    NewData = maps:merge(Data, #{subs => NewSubs}),
+    spawn(fun() ->
+        erlang:monitor(process, Pid),
+        receive
+            {'DOWN', _MonitorRef, process, _, _} ->
+                logger:debug("[discord:gateway] Subscriber ~w is down, removing it from subscribers", [Pid]),
+                unsubscribe(Pid)
+        end
+    end),
+    logger:debug("[discord:gateway] Added ~w to the subscriber list", [Pid]),
+    {keep_state, NewData};
+
+handle_event(_EventType, {unsubscribe, Pid}, _State, Data = #{subs := Subs}) ->
+    NewSubs = sets:del_element(Pid, Subs),
+    NewData = maps:merge(Data, #{subs => NewSubs}),
+    logger:debug("[discord:gateway] Removed ~w from the subscriber list", [Pid]),
+    {keep_state, NewData};
+
+handle_event(_EventType, {emit, Msg}, _State, Data = #{subs := Subs}) ->
+    spawn(fun() ->
+        sets:fold(fun(Sub, _) -> Sub ! Msg, {} end, {}, Subs)
+    end),
+    {keep_state, Data};
 
 handle_event(_EventType, {connect, Token}, disconnected, Data) ->
     Timeout = 2000,
@@ -159,32 +185,6 @@ handle_event(_EventType, {heartbeat}, _State, Data = #{conn := ConnPid, heartbea
     }}),
 
     {keep_state, NewData};
-
-handle_event(_EventType, {subscribe, Pid}, _State, Data = #{subs := Subs}) ->
-    NewSubs = sets:add_element(Pid, Subs),
-    NewData = maps:merge(Data, #{subs => NewSubs}),
-    spawn(fun() ->
-        erlang:monitor(process, Pid),
-        receive
-            {'DOWN', _MonitorRef, process, _, _} ->
-                logger:debug("[discord:gateway] Subscriber ~w is down, removing it from subscribers", [Pid]),
-                unsubscribe(Pid)
-        end
-    end),
-    logger:debug("[discord:gateway] Added ~w to the subscriber list", [Pid]),
-    {keep_state, NewData};
-
-handle_event(_EventType, {unsubscribe, Pid}, _State, Data = #{subs := Subs}) ->
-    NewSubs = sets:del_element(Pid, Subs),
-    NewData = maps:merge(Data, #{subs => NewSubs}),
-    logger:debug("[discord:gateway] Removed ~w from the subscriber list", [Pid]),
-    {keep_state, NewData};
-
-handle_event(_EventType, {emit, Msg}, _State, Data = #{subs := Subs}) ->
-    spawn(fun() ->
-        sets:fold(fun(Sub, _) -> Sub ! Msg, {} end, {}, Subs)
-    end),
-    {keep_state, Data};
 
 handle_event(_EventType, EventContent, State, Data) ->
     logger:debug("[discord:gateway] Received unexpected event ~w while in state ~w with data ~w", [EventContent, State, Data]),

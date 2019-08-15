@@ -44,9 +44,9 @@ handle_call({channel_send_message, ChannelId, Data}, _From, State = {ready, #{to
     Result =
         case gun:await(ConnPid, StreamRef) of
             {response, nofin, _Status, _Headers} ->
-                {ok, _Response} = gun:await_body(ConnPid, StreamRef),
-                % TODO check if response body is valid
-                {reply, {ok}, State};
+                {ok, Response} = gun:await_body(ConnPid, StreamRef),
+                {ok, Parsed, _} = util:parse_json(Response),
+                {reply, {ok, Parsed}, State};
             Other ->
                 {reply, {badresponse, Other}, State}
         end,
