@@ -108,6 +108,7 @@ You can omit the poll ID to refer to the latest poll created in the current chan
 - Implement core functionality
     - Use proper seq no's for Discord heartbeats
     - Start and end polls
+- Persist poll data with `mnesia`
 - Use dialyzer
 - Implement more tests
 - Maybe use `ct` instead of `eunit`
