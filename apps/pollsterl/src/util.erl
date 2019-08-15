@@ -66,9 +66,10 @@ parse_command(Message) ->
     end.
 
 parse_message(Message) ->
-    case re:run(Message, "^!poll(sterl|ster)?\s+(?<capture>.*+)", [{capture, all_names}]) of
+    MsgString = util:join([Message]),
+    case re:run(MsgString, "^!poll(sterl|ster)?\s+(?<capture>.*+)", [{capture, all_names}]) of
         {match, [{Begin, Length}]} ->
-            Subject = string:slice(Message, Begin, Length),
+            Subject = string:slice(MsgString, Begin, Length),
             parse_command(Subject);
         _ ->
             {ignore}

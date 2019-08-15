@@ -33,10 +33,10 @@ parse_message_test() ->
 
 extract_command_test() ->
     % Help commands
-    {ok, help, []} = util:extract_command("!poll !help"),
-    {ok, help, []} = util:extract_command(<<"!poll !help">>),
-    {ok, help, []} = util:extract_command("!poll !info"),
-    {ok, help, ["foo"]} = util:extract_command("!poll !help foo"),
+    {ok, {help, []}} = util:extract_command("!poll !help"),
+    {ok, {help, []}} = util:extract_command(<<"!poll !help">>),
+    {ok, {help, []}} = util:extract_command("!poll !info"),
+    {ok, {help, ["foo"]}} = util:extract_command("!poll !help foo"),
 
     % Start commands
     {ok, {start, "foo", basic}} = util:extract_command("!poll !start foo"),
