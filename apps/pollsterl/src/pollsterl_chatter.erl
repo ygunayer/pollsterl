@@ -53,8 +53,9 @@
 start_link() ->
     Pid = spawn_link(?MODULE, init, []),
     {ok, Token} = application:get_env(pollsterl, bot_token),
+    discord_gateway:subscribe(Pid),
     spawn(fun() -> discord_rest:set_token(Token) end),
-    spawn(fun() -> discord_gateway:open(Token, Pid) end),
+    spawn(fun() -> discord_gateway:open(Token) end),
     {ok, Pid}.
 
 init() ->
@@ -66,7 +67,7 @@ init() ->
 
 loop(BotId) ->
     receive
-        {event, <<"MESSAGE_CREATE">>, #{
+        {discord_dispatch, <<"MESSAGE_CREATE">>, #{
             content := Content,
             channel_id := ChannelId,
             author := #{id := AuthorId, username := Author}

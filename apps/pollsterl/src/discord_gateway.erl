@@ -1,8 +1,8 @@
 -module(discord_gateway).
--export([start_link/0, open/2]).
+-export([start_link/0, open/1]).
 
 -behaviour(gen_statem).
--export([init/1, callback_mode/0, handle_event/4]).
+-export([init/1, callback_mode/0, handle_event/4, subscribe/1, unsubscribe/1]).
 -define(SERVER_NAME, ?MODULE).
 
 -define(OP_DISPATCH, 0).
@@ -25,8 +25,14 @@
 start_link() ->
     gen_statem:start_link({local, ?SERVER_NAME}, ?MODULE, {}, []).
 
-open(Token, Pid) ->
-    gen_statem:cast(?SERVER_NAME, {connect, Token, Pid}).
+open(Token) ->
+    gen_statem:call(?SERVER_NAME, {connect, Token}).
+
+subscribe(Pid) ->
+    gen_statem:cast(?SERVER_NAME, {subscribe, Pid}).
+
+unsubscribe(Pid) ->
+    gen_statem:cast(?SERVER_NAME, {unsubscribe, Pid}).
 
 %% Private methods
 %% ------------------------
@@ -37,7 +43,8 @@ parse_frame({close, Reason, Message}) ->
 parse_frame(Other) ->
     {error, {unsupported, Other}}.
 
-
+emit(Msg) ->
+    gen_statem:cast(?SERVER_NAME, {emit, Msg}).
 
 %% gen_statem Callbacks
 %% ---------------
@@ -45,9 +52,9 @@ callback_mode() ->
     handle_event_function.
 
 init(_Args) ->
-    {ok, disconnected, #{subs => []}}.
+    {ok, disconnected, #{subs => sets:new()}}.
 
-handle_event(_EventType, {connect, Token, Handler}, disconnected, Data) ->
+handle_event(_EventType, {connect, Token}, disconnected, Data) ->
     Timeout = 2000,
     logger:debug("[discord:gateway] Connecting to the server...~n"),
 
@@ -61,7 +68,7 @@ handle_event(_EventType, {connect, Token, Handler}, disconnected, Data) ->
     receive
         {gun_upgrade, ConnPid, _StreamRef, [<<"websocket">>], _} ->
             logger:debug("[discord:gateway] WS upgrade successful"),
-            {next_state, connecting, #{token => Token, conn => ConnPid, handler => Handler}};
+            {next_state, connecting, maps:merge(Data, #{token => Token, conn => ConnPid})};
         Other ->
             logger:warn("[discord:gateway] WS upgrade failed ~w~n", [Other]),
             {keep_state, Data}
@@ -110,8 +117,7 @@ handle_event(_EventType, {ws_message, Message}, connecting, Data) ->
             #{id := BotId, username := BotName} = UserInfo,
             logger:debug("[discord:gateway] Bot is now authenticated as ~s (id: ~w)", [BotName, BotId]),
 
-            #{handler := Handler} = Data,
-            Handler ! {bot_id, BotId},
+            emit({bot_id, BotId}),
 
             NewData = maps:merge(Data, #{bot => DispatchData, guilds => []}),
             {next_state, connected, NewData};
@@ -120,7 +126,7 @@ handle_event(_EventType, {ws_message, Message}, connecting, Data) ->
             {keep_state, Data}
     end;
 
-handle_event(_EventType, {ws_message, Message}, connected, Data = #{guilds := GuildsBefore, handler := Handler}) ->
+handle_event(_EventType, {ws_message, Message}, connected, Data = #{guilds := GuildsBefore}) ->
     case Message of
         #{op := ?OP_DISPATCH, t := ?EVENT_GUILD_CREATE, d := GuildData} ->
             #{name := GuildName} = GuildData,
@@ -130,7 +136,7 @@ handle_event(_EventType, {ws_message, Message}, connected, Data = #{guilds := Gu
             {keep_state, NewData};
 
         #{op := ?OP_DISPATCH, t := EventName, d := EventData} ->
-            Handler ! {event, EventName, EventData},
+            emit({discord_dispatch, EventName, EventData}),
             {keep_state, Data};
 
         _ ->
@@ -154,6 +160,32 @@ handle_event(_EventType, {heartbeat}, _State, Data = #{conn := ConnPid, heartbea
 
     {keep_state, NewData};
 
+handle_event(_EventType, {subscribe, Pid}, _State, Data = #{subs := Subs}) ->
+    NewSubs = sets:add_element(Pid, Subs),
+    NewData = maps:merge(Data, #{subs => NewSubs}),
+    spawn(fun() ->
+        erlang:monitor(process, Pid),
+        receive
+            {'DOWN', _MonitorRef, process, _, _} ->
+                logger:debug("[discord:gateway] Subscriber ~w is down, removing it from subscribers", [Pid]),
+                unsubscribe(Pid)
+        end
+    end),
+    logger:debug("[discord:gateway] Added ~w to the subscriber list", [Pid]),
+    {keep_state, NewData};
+
+handle_event(_EventType, {unsubscribe, Pid}, _State, Data = #{subs := Subs}) ->
+    NewSubs = sets:del_element(Pid, Subs),
+    NewData = maps:merge(Data, #{subs => NewSubs}),
+    logger:debug("[discord:gateway] Removed ~w from the subscriber list", [Pid]),
+    {keep_state, NewData};
+
+handle_event(_EventType, {emit, Msg}, _State, Data = #{subs := Subs}) ->
+    spawn(fun() ->
+        sets:fold(fun(Sub, _) -> Sub ! Msg, {} end, {}, Subs)
+    end),
+    {keep_state, Data};
+
 handle_event(_EventType, EventContent, State, Data) ->
-    logger:debug("[discord:gateway] Received unexpected event ~w while in state ~w~n", [EventContent, State]),
+    logger:debug("[discord:gateway] Received unexpected event ~w while in state ~w with data ~w", [EventContent, State, Data]),
     {keep_state, Data}.
