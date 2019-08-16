@@ -1,10 +1,10 @@
 Poll {{subject}} has ended. The winner is...
 
-:tada: {{winner_emoji}} {{winner_label}} :tada: ({{winner_count}} votes)
+:tada: {{winner.key}} {{winner.label}} :tada: ({{winner.count}} votes)
 
 The top contenders were were:
 {{#runner_ups}}
-- {{count}} {{emoji}} {{label}}
+- {{count}} {{key}} {{label}}
 {{/runner_ups}}
 
 For more stats about this poll, enter `!poll !stats {{poll_id}}`

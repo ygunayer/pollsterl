@@ -81,7 +81,7 @@ handle_event(_EventType, {emit, Msg}, _State, Data = #{subs := Subs}) ->
     {keep_state, Data};
 
 handle_event(_EventType, {connect, Token}, disconnected, Data) ->
-    Timeout = 2000,
+    Timeout = 5000,
     logger:debug("[discord:gateway] Connecting to the server...~n"),
 
     {ok, ConnPid} = gun:open("gateway.discord.gg", 443, #{protocols => [http], transport => tls}),

@@ -66,11 +66,10 @@ handle_info({discord_dispatch, EventName, EventData}, State = {ready, #{bot_id :
     case {EventName, EventData} of
         {
             <<"MESSAGE_CREATE">>,
-            #{id := MessageId, content := Content, author := #{id := AuthorId}}
+            #{content := Content, author := #{id := AuthorId}}
         } when AuthorId =/= BotId ->
             case util:extract_command(binary:bin_to_list(Content)) of
                 {ok, Command} ->
-                    logger:debug("[command-relay] Captured command ~s in message ~s", [Command, MessageId]),
                     emit({command, Command, EventData});
                 Other ->
                     logger:debug("[command-relay] Command not recognized ~w", [Other])
@@ -79,8 +78,12 @@ handle_info({discord_dispatch, EventName, EventData}, State = {ready, #{bot_id :
             <<"MESSAGE_REACTION_ADD">>,
             #{message_id := MessageId, emoji := #{name := EmojiName}, user_id := AuthorId}
         } when AuthorId =/= BotId ->
-            logger:debug("[command-relay] Captured reaction ~w to message ~s", [EmojiName, MessageId]),
-            emit({command, {cast_vote, MessageId, EmojiName}, EventData});
+            case emoji:for_codepoint(EmojiName, invariant) of
+                {ok, Option} ->
+                    VoteInfo = #{author_id => AuthorId, message_id => MessageId, option => Option},
+                    emit({command, {cast_vote, VoteInfo}, EventData});
+                _ -> noop
+            end;
         _ -> noop
     end,
     {noreply, State};

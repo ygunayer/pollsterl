@@ -1,51 +1,11 @@
 -module(pollsterl_chatter).
+-include("emoji.hrl").
 -export([start_link/0, listen/0]).
 
 -define(BASIC_POLL_OPTIONS, [
-    #{<<"emoji">> => ":thumbsup:", <<"label">> => "Yes/Agree"},
-    #{<<"emoji">> => ":thumbsdown:", <<"label">> => "No/Disagree"},
-    #{<<"emoji">> => ":shrug:", <<"label">> => "Maybe/Undecided"}
-]).
-
--define(EMOJI_DIGITS, [
-    ":one:",
-    ":two:",
-    ":three:",
-    ":four:",
-    ":five:",
-    ":six:",
-    ":seven:",
-    ":eight:",
-    ":nine:",
-    ":keycap_ten:"
-]).
-
--define(EMOJI_LETTERS, [
-    ":regional_indicator_a:",
-    ":regional_indicator_b:",
-    ":regional_indicator_c:",
-    ":regional_indicator_d:",
-    ":regional_indicator_e:",
-    ":regional_indicator_f:",
-    ":regional_indicator_g:",
-    ":regional_indicator_i:",
-    ":regional_indicator_j:",
-    ":regional_indicator_k:",
-    ":regional_indicator_l:",
-    ":regional_indicator_m:",
-    ":regional_indicator_n:",
-    ":regional_indicator_o:",
-    ":regional_indicator_p:",
-    ":regional_indicator_q:",
-    ":regional_indicator_r:",
-    ":regional_indicator_s:",
-    ":regional_indicator_t:",
-    ":regional_indicator_u:",
-    ":regional_indicator_v:",
-    ":regional_indicator_w:",
-    ":regional_indicator_x:",
-    ":regional_indicator_y:",
-    ":regional_indicator_z:"
+    #{<<"key">> => emoji:key_of(?EMOJI_THUMBS_UP), <<"emoji">> => ?EMOJI_THUMBS_UP, <<"label">> => "Yes/Agree"},
+    #{<<"key">> => emoji:key_of(?EMOJI_THUMBS_DOWN), <<"emoji">> => ?EMOJI_THUMBS_DOWN, <<"label">> => "No/Disagree"},
+    #{<<"key">> => emoji:key_of(?EMOJI_SHRUG), <<"emoji">> => ?EMOJI_SHRUG, <<"label">> => "Maybe/Undecided"}
 ]).
 
 -define(EMOJI_ALL, lists:concat(?EMOJI_DIGITS, ?EMOJI_LETTERS)).
@@ -80,10 +40,10 @@ listen() ->
                         LabelList ->
                             EmojiList =
                                 case length(LabelList) of
-                                    N when N < 11 -> lists:sublist(?EMOJI_DIGITS, N);
-                                    N -> lists:sublist(?EMOJI_ALL, N)
+                                    N when N < 11 -> lists:sublist(?EMOJIS_DIGITS, N);
+                                    N -> lists:sublist(?EMOJIS_ALPHANUM, N)
                                 end,
-                            [#{<<"emoji">> => Emoji, <<"label">> => Label} || {Label, Emoji} <- lists:zip(LabelList, EmojiList)]
+                            [#{<<"key">> => emoji:key_of(Emoji), <<"emoji">> => Emoji, <<"label">> => Label} || {Label, Emoji} <- lists:zip(LabelList, EmojiList)]
                     end,
                     {ok, Pid} = pollsterl_poll_sup:start_poll(),
                     {ok, _} = pollsterl_poll_handler:start(Pid, #{original_message_id => MessageId, subject => Subject, author => Author, options => Options, channel_id => ChannelId});
