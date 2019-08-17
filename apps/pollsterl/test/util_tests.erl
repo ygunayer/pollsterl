@@ -57,12 +57,12 @@ extract_command_test() ->
         ["NCR", "Caesar's Legion", "Mr. House", "I go about my own way"]
     }} = util:extract_command("!poll \"Which faction do you prefer?\" NCR \"Caesar's Legion\" \"Mr. House\" \"I go about my own way\""),
 
-    % Stop commands
-    {ok, {stop, ["foo"]}} = util:extract_command("!poll !stop foo"),
-    {ok, {stop, ["foo", "bar"]}} = util:extract_command("!poll !stop foo bar"),
-    {ok, {stop, all}} = util:extract_command("!poll !stop all"),
-    {ok, {stop, last}} = util:extract_command("!poll !stop last"),
-    {ok, {stop, last}} = util:extract_command("!poll !stop"),
+    % Close commands
+    {ok, {close, ["foo"]}} = util:extract_command("!poll !close foo"),
+    {ok, {close, ["foo", "bar"]}} = util:extract_command("!poll !close foo bar"),
+    {ok, {close, all}} = util:extract_command("!poll !close all"),
+    {ok, {close, last}} = util:extract_command("!poll !close last"),
+    {ok, {close, last}} = util:extract_command("!poll !close"),
 
     % Expire commands
     % NOT YET IMPLEMENTED

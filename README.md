@@ -28,7 +28,7 @@ You can use `!poll !help` or `!poll !info` to print the general help text.
 
 To request help on a specific command or topic, enter one of the following:
 - `!poll !help !start`: Starting polls
-- `!poll !help !stop`: Stopping polls
+- `!poll !help !close`: Closing polls
 - `!poll !help !expire`: Managing expiration dates of polls
 
 ### !start
@@ -56,37 +56,37 @@ By default, all polls start with the basic yes/no/undecided options, but you can
 !poll "Which faction do you prefer?" NCR "Caesar's Legion" "Mr. House" "I go about my own way"
 ```
 
-### !stop
-You can use the `!stop` command to stop an ongoing command.
+### !close
+You can use the `!close` command to close an ongoing command.
 
-The default usage of the stop command is:
+The default usage of the close command is:
 ```
-!poll !stop <poll id>
+!poll !close <poll id>
 ```
 
 You can also specify multiple poll IDs
 ```
-!poll !stop <poll id 1> <poll id 2> ...
+!poll !close <poll id 1> <poll id 2> ...
 ```
 
 The word `last` can be used to quickly refer to the latest poll that was created on the current channel
 ```
-!poll !stop last
+!poll !close last
 ```
 
 ...or omit any ID or keyword to refer to it
 ```
-!poll !stop
+!poll !close
 ```
 
-To stop all ongoing polls in the *current channel*, use the keyword `here`
+To close all ongoing polls in the *current channel*, use the keyword `here`
 ```
-!poll !stop here
+!poll !close here
 ```
 
-Or, to stop all polls globally, use the keyword `all`
+Or, to close all polls globally, use the keyword `all`
 ```
-!poll !stop all
+!poll !close all
 ```
 
 ### !expire - (WORK IN PROGRESS)

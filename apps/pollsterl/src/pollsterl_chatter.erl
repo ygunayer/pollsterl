@@ -25,7 +25,7 @@ listen() ->
                 {help, Topic} ->
                     TemplateName = case Topic of
                         ["!start"] -> "help_start";
-                        ["!stop"] -> "help_stop";
+                        ["!close"] -> "help_close";
                         ["!expire"] -> "help_expire";
                         _ -> "help"
                     end,
@@ -48,7 +48,7 @@ listen() ->
                     {ok, Pid} = pollsterl_poll_sup:start_poll(),
                     {ok, _} = pollsterl_poll_handler:start(Pid, #{original_message_id => MessageId, subject => Subject, author => Author, options => Options, channel_id => ChannelId});
 
-                {stop, Polls} ->
+                {close, Polls} ->
                     PollNames = case Polls of
                         all -> <<"all polls">>;
                         last -> <<"the last poll">>;
@@ -56,7 +56,7 @@ listen() ->
                     end,
                     Reply = erlang:list_to_binary([
                         Author,
-                        <<" is stopping ">>,
+                        <<" is closing ">>,
                         PollNames,
                         <<" in this channel">>
                     ]),

@@ -86,10 +86,10 @@ extract_command(Message) ->
         {no_command, [Subject]} -> {ok, {start, Subject, basic}};
         {no_command, [Subject | Options]} when length(Options) < 37 -> {ok, {start, Subject, Options}};
 
-        {command, "stop", []} -> {ok, {stop, last}};
-        {command, "stop", ["last"]} -> {ok, {stop, last}};
-        {command, "stop", ["all"]} -> {ok, {stop, all}};
-        {command, "stop", Ids} -> {ok, {stop, Ids}};
+        {command, "close", []} -> {ok, {close, last}};
+        {command, "close", ["last"]} -> {ok, {close, last}};
+        {command, "close", ["all"]} -> {ok, {close, all}};
+        {command, "close", Ids} -> {ok, {close, Ids}};
 
         {command, "expire", []} -> {error, not_enough_args, start};
         {command, "expire", _Args} -> {error, not_implemented, expire};
