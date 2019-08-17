@@ -1,4 +1,4 @@
--module(pollsterl_chatter).
+-module(pollsterl_manager).
 -include("emoji.hrl").
 -export([start_link/0, listen/0]).
 
@@ -7,8 +7,6 @@
     #{<<"key">> => emoji:key_of(?EMOJI_THUMBS_DOWN), <<"emoji">> => ?EMOJI_THUMBS_DOWN, <<"label">> => "No/Disagree"},
     #{<<"key">> => emoji:key_of(?EMOJI_SHRUG), <<"emoji">> => ?EMOJI_SHRUG, <<"label">> => "Maybe/Undecided"}
 ]).
-
--define(EMOJI_ALL, lists:concat(?EMOJI_DIGITS, ?EMOJI_LETTERS)).
 
 start_link() ->
     Pid = spawn_link(?MODULE, listen, []),

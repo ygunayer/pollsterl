@@ -16,7 +16,7 @@ init([]) ->
         #{id => templates, start => {pollsterl_templates, start_link, []}, restart => transient},
         #{id => cmd_relay, start => {pollsterl_command_relay, start_link, []}, restart => transient},
         #{id => poll_sup, start => {pollsterl_poll_sup, start_link, []}, restart => transient},
-        #{id => chatter, start => {pollsterl_chatter, start_link, []}, restart => transient}
+        #{id => manager, start => {pollsterl_manager, start_link, []}, restart => transient}
     ],
     logger:debug("[supervisor:root] Root supervisor is launching"),
     {ok, {SupFlags, ChildSpecs}}.
