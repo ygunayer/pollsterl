@@ -1,5 +1,5 @@
 -module(util).
--export([parse_json/1, parse_args/1, parse_command/1, parse_message/1, extract_command/1, join/1, join/2, random_string/1, random_string/2]).
+-export([parse_json/1, parse_args/1, parse_command/1, parse_message/1, extract_command/1, join/1, join/2, random_string/1, random_string/2, to_binary/1, make_render_safe/1]).
 
 random_string(Length) ->
     random_string(Length, "abcdefghijklmnopqrstuvwxyz1234567890").
@@ -87,6 +87,7 @@ extract_command(Message) ->
         {no_command, [Subject | Options]} when length(Options) < 37 -> {ok, {start, Subject, Options}};
 
         {command, "close", []} -> {ok, {close, last}};
+        {command, "close", ["here"]} -> {ok, {close, here}};
         {command, "close", ["last"]} -> {ok, {close, last}};
         {command, "close", ["all"]} -> {ok, {close, all}};
         {command, "close", Ids} -> {ok, {close, Ids}};
@@ -98,3 +99,21 @@ extract_command(Message) ->
 
         _ -> none
     end.
+
+to_binary(X) when is_list(X) -> list_to_binary(X);
+to_binary(X) when is_atom(X) == true -> erlang:atom_to_binary(X, utf8);
+to_binary(X) when is_binary(X) == true -> X.
+
+make_render_safe(Map) ->
+    maps:fold(
+        fun(Key, Value, Acc) ->
+            NewValue = case erlang:is_map(Value) of
+                true -> make_render_safe(Value);
+                _ -> Value
+            end,
+            NewKey = to_binary(Key),
+            maps:put(NewKey, NewValue, Acc)
+        end,
+        maps:new(),
+        Map
+    ).

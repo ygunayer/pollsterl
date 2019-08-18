@@ -61,6 +61,7 @@ extract_command_test() ->
     {ok, {close, ["foo"]}} = util:extract_command("!poll !close foo"),
     {ok, {close, ["foo", "bar"]}} = util:extract_command("!poll !close foo bar"),
     {ok, {close, all}} = util:extract_command("!poll !close all"),
+    {ok, {close, here}} = util:extract_command("!poll !close here"),
     {ok, {close, last}} = util:extract_command("!poll !close last"),
     {ok, {close, last}} = util:extract_command("!poll !close"),
 
@@ -71,4 +72,16 @@ extract_command_test() ->
     %{ok, {expire, "foo", {exact, "2019-08-16T13:44:51+0300"}}} = util:extract_command("!poll !expire <poll id> \"2019-08-16T13:44:51+0300\""),
     %{ok, {expire, last, {relative, 3600}}} = none = util:extract_command("!poll !expire 1 hour"),
     %{ok, {expire, last, {relative, 3600}}} = none = util:extract_command("!poll !expire last 1 hour"),
+    ok.
+
+to_binary_test() ->
+    <<"foo">> = util:to_binary(foo),
+    <<"foo">> = util:to_binary("foo"),
+    ok.
+
+make_render_safe_test() ->
+    #{<<"foo">> := foo} = util:make_render_safe(#{foo => foo}),
+    #{<<"foo">> := foo} = util:make_render_safe(#{"foo" => foo}),
+    #{<<"foo">> := #{<<"bar">> := baz}} = util:make_render_safe(#{foo => #{bar => baz}}),
+    #{<<"foo">> := #{<<"bar">> := baz}} = util:make_render_safe(#{<<"foo">> => #{<<"bar">> => baz}}),
     ok.
