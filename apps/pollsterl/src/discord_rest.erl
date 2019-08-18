@@ -4,6 +4,7 @@
 -behaviour(gen_server).
 -export([init/1, handle_cast/2, handle_call/3]).
 -define(SERVER_NAME, ?MODULE).
+-define(CONNECT_TIMEOUT, 10000).
 
 %% Public API
 %% ---------------
@@ -21,10 +22,9 @@ channel_send_message(ChannelId, Data) ->
 %% Private API
 %% ----------------
 connect() ->
-    Timeout = 2000,
     logger:debug("[discord:rest] Opening connection to Discord..."),
     {ok, ConnPid} = gun:open("discordapp.com", 443, #{protocols => [http], transport => tls}),
-    {ok, _} = gun:await_up(ConnPid, Timeout),
+    {ok, _} = gun:await_up(ConnPid, ?CONNECT_TIMEOUT),
     {ok, ConnPid}.
 
 %% Callback implementations

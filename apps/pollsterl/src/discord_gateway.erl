@@ -4,6 +4,7 @@
 -behaviour(gen_statem).
 -export([init/1, callback_mode/0, handle_event/4, subscribe/1, unsubscribe/1]).
 -define(SERVER_NAME, ?MODULE).
+-define(CONNECT_TIMEOUT, 10000).
 
 -define(OP_DISPATCH, 0).
 -define(OP_HEARTBEAT, 1).
@@ -81,7 +82,7 @@ handle_event(_EventType, {emit, Msg}, _State, Data = #{subs := Subs}) ->
     {keep_state, Data};
 
 handle_event(_EventType, {connect, Token}, disconnected, Data) ->
-    Timeout = 5000,
+    Timeout = ?CONNECT_TIMEOUT,
     logger:debug("[discord:gateway] Connecting to the server...~n"),
 
     {ok, ConnPid} = gun:open("gateway.discord.gg", 443, #{protocols => [http], transport => tls}),
