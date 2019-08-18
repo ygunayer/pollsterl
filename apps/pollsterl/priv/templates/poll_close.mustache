@@ -1,10 +1,23 @@
-Poll {{subject}} has ended. The winner is...
+{{#no_winner}}
+Poll {{subject}} has ended without any votes cast.
+{{/no_winner}}
+{{#one_winner}}
+Poll {{subject}} has ended with a total of {{total_count}} votes cast.
 
-:tada: {{winner.key}} {{winner.label}} :tada: ({{winner.count}} votes)
+With {{max_count}} vote(s), the winner is:
 
-The top contenders were were:
-{{#runner_ups}}
-- {{count}} {{key}} {{label}}
-{{/runner_ups}}
+- {{winner.key}} {{winner.label}}
 
-For more stats about this poll, enter `!poll !stats {{poll_id}}`
+*For more stats about this poll, enter `!poll !stats {{poll_id}}`*
+{{/one_winner}}
+{{#draw}}
+Poll {{subject}} has ended in a draw with a total of {{total_count}} votes cast.
+
+With {{max_count}} vote(s) each, the winners are:
+
+{{#winners}}
+- {{key}} {{label}}
+{{/winners}}
+
+*For more stats about this poll, enter `!poll !stats {{poll_id}}`*
+{{/draw}}
