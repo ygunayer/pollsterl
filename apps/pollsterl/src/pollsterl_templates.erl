@@ -35,7 +35,8 @@ handle_call({render, {TemplateName, Data}}, _From, {ready, #{templates := Templa
     case maps:is_key(TemplateName, Templates) of
         true ->
             Template = maps:get(TemplateName, Templates),
-            {reply, bbmustache:compile(Template, Data, [{key_type, binary}, raise_on_context_miss]), State};
+            RenderSafeData = util:make_render_safe(Data),
+            {reply, bbmustache:compile(Template, RenderSafeData, [{key_type, binary}, raise_on_context_miss]), State};
         _ ->
             {reply, {error, invalid_template}, State}
     end;

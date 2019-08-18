@@ -1,5 +1,5 @@
 -module(pollsterl_command_relay).
--export([start_link/0, subscribe/1, unsubscribe/1]).
+-export([start_link/0, subscribe/1, unsubscribe/1, emit/1]).
 
 -behaviour(gen_server).
 -export([init/1, handle_cast/2, handle_call/3, handle_info/2]).
@@ -16,8 +16,6 @@ subscribe(Pid) ->
 unsubscribe(Pid) ->
     gen_server:cast(?SERVER_NAME, {unsubscribe, Pid}).
 
-%% Private API
-%% ----------------
 emit(Msg) ->
     gen_server:cast(?SERVER_NAME, {emit, Msg}).
 
