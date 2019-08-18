@@ -104,18 +104,19 @@ You can omit the poll ID to refer to the latest poll created in the current chan
 
 
 ## TODO
-- EDoc
-- Implement core functionality
-    - Use proper seq no's for Discord heartbeats
-    - Start and end polls
-- Persist poll data with `mnesia`
-- Use dialyzer
-- Implement more tests
-- Maybe use `ct` instead of `eunit`
-- Actual release
-    - Deployment
-- Maybe use `recon`
-- (Future) Implement a DSL-based rule engine to allow users to define custom behaviors without having to modify the code
+- [ ] Write EDoc
+- [ ] Implement core functionality
+    - [ ] Use proper seq no's for Discord heartbeats
+    - [x] Start and end polls
+- [ ] Persist poll data using [epgsql](https://github.com/epgsql/epgsql) with [poolboy](https://github.com/devinus/poolboy)
+- [ ] Use dialyzer for type checking
+- [ ] Implement more tests
+- [ ] Deploy the app somewhere
+
+### Nice to Have
+- [ ] Use `ct` instead of `eunit`
+- [ ] Use `recon` for debugging/tracing
+- [ ] (Maybe) Implement a DSL-based rule engine to allow users to define custom behaviors without having to modify the code
 
 ## License
 MIT
